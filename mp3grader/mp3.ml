@@ -5,7 +5,7 @@ open List
 let rec even_count l =
 match l with
 [] -> 0
-| (x::xs) -> (even_count xs) + if (x mod 2 == 0) then 1 else 0;;
+| (x::xs) -> (even_count xs) + if (x mod 2 = 0) then 1 else 0;;
 
 (* Problem 2 *)
 let rec split_sum l f =
@@ -40,7 +40,7 @@ match l with
 (match l with
 [] -> ind
 | (y::ys) -> if (y > max) then index_r ys y (curr+1) [curr]
-else if (y == max) then index_r ys max (curr+1) (curr::ind)
+else if (y = max) then index_r ys max (curr+1) (curr::ind)
 else index_r ys max (curr+1) ind)
 in
 index_r xs x 1 [0];;
@@ -52,7 +52,7 @@ match l with
 | (x::xs) -> let rec unique_r l new_list last =
 (match l with
 [] -> new_list
-| (y::ys) -> if (y == last) then unique_r ys new_list last
+| (y::ys) -> if (y = last) then unique_r ys new_list last
 else unique_r ys (y::new_list) y)
 in
 let rec rev_list old_l new_l =
@@ -96,6 +96,6 @@ match l with
 | (x::xs) -> rev (List.fold_left (fun acc y ->
 match acc with
 [] -> raise(Failure "Should never occur")
-| ((a,b)::zs) -> if (y == a) then ((a,(b+1))::zs)
+| ((a,b)::zs) -> if (y = a) then ((a,(b+1))::zs)
 else ((y,1)::acc)) [(x,1)] xs);;
 
