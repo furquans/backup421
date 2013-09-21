@@ -20,8 +20,8 @@ mulk x x
 (fun r3 -> addk r2 r3 k)));;
 
 (* Problem 3 *)
-let composek f g k = 
-  raise(Failure "Function not implemented yet.")
+let composek f g x k = 
+f x (fun r1 -> g r1 (fun r2 -> k r2));;
 
 (* Problem 4 *)
 
@@ -72,7 +72,11 @@ else consk x r2 (fun l2 -> k (r1,l2))));;
 
 (* Problem 7 *)
 let rec findk l p normalk exceptionk = 
-  raise(Failure "Function not implemented yet.")
+match l with
+[] -> exceptionk ()
+| (x::xs) -> p x
+(fun b -> if b then normalk x
+else findk xs p normalk exceptionk);;
 
 (* Problem 8 *)
 let rec appk l x k =
