@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{amsmath}
+\title{CS 421 HW4 Solution}
+\author{Furquan Shaikh(fmshaik2)}
+\date{September 23, 2013}
+\newcommand{\cps}[2]{\ensuremath{[[{#1}]]_{\textstyle #2}}}	
+\oddsidemargin = -30pt
+%PREAMBLE end here%
+%DOCUMENT starts here%
+\begin{document}
+
+\maketitle
+\begin{math}
+{[[\text{fn f} \Rightarrow \text{fn x} \Rightarrow \text{if x $>$ 0 then f x else f ((-1) * x)}]]}_{(\text{FUN w} \rightarrow \text{report w})} \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow {[[\text{fn x} \Rightarrow \text{if x $>$ 0 then f x else f ((-1) * x)}]]}_{k1}) \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow \text{[[if x $>$ 0 then f x else f ((-1) * x)]]}_{k2})) \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow {[[\text{x $>$ 0}]]}_{(\text{FUN y } \rightarrow \text{ IF y THEN } {[[\text{f x}]]}_{k2} \text{ ELSE } {[[f ((-1) * x)]]}_{k2})})) \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow ((\text{FUN y } \rightarrow \text{IF y THEN } {[[\text{f x}]]}_{k2} \text{ ELSE } {[[f ((-1) * x)]]}_{k2})(\text{x $>$ 0})))) \\ \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow \\ 
+((\text{FUN y} \rightarrow \text{IF y THEN } {[[f]]}_{(\text{FUN a} \rightarrow {[[x]]}_{(\text{FUN b } \rightarrow \text{a b k2})})} \text{ ELSE } {[[f]]}_{(\text{FUN c} \rightarrow {[[\text{((-1) * x)}]]}_{(\text{FUN d} \rightarrow \text{c d k2})})})(\text{x $>$ 0})))) \\ \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow
+((\text{FUN y} \rightarrow \text{IF y THEN } {[[f]]}_{(\text{FUN a } \rightarrow ((\text{FUN b } \rightarrow \text{a b k2})\text{ x}))} \\
+ELSE {[[f]]}_{(\text{FUN c } \rightarrow {[[(-1)]]}_{(\text{FUN m} \rightarrow {[[x]]}_{(\text{FUN n} \rightarrow (\text{FUN d} \rightarrow \text{c d k2})(\text{m * n}))})})})(\text{x $>$ 0})))) \\ \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow
+((\text{FUN y} \rightarrow \text{IF y THEN } ((\text{FUN a} \rightarrow ((\text{FUN b} \rightarrow \text{a b k2})\text{ x}))\text{ f})
+\text{ ELSE } {[[f]]}_{(\text{FUN c } \rightarrow {[[(-1)]]}_{(\text{FUN m} \rightarrow ((\text{FUN n} \rightarrow (\text{FUN d} \rightarrow \text{c d k2})(\text{m * n}))x))})})(\text{x $>$ 0})))) \\ \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow
+((\text{FUN y} \rightarrow \text{IF y THEN } ((\text{FUN a} \rightarrow ((\text{FUN b} \rightarrow \text{a b k2})\text{ x}))\text{ f})
+\text{ ELSE } {[[f]]}_{(\text{FUN c } \rightarrow ((\text{FUN m } \rightarrow ((\text{FUN n } \rightarrow (\text{FUN d } \rightarrow \text{ c d k2 })(\text{m * n}))\text{ x }))(-1)))})(\text{x $>$ 0})))) \\ \\ \\
+= (\text{FUN w} \rightarrow \text{report w})(\text{FN f k1} \rightarrow \text{k1}(\text{FN x k2} \rightarrow
+((\text{FUN y} \rightarrow \text{IF y THEN } ((\text{FUN a} \rightarrow ((\text{FUN b} \rightarrow \text{a b k2})\text{ x}))\text{ f})
+\text{ ELSE } ((\text{FUN c } \rightarrow ((\text{FUN m } \rightarrow ((\text{FUN n } \rightarrow (\text{FUN d } \rightarrow \text{ c d k2})(\text{m * n}))\text{ x }))(-1)))f))(\text{x $>$ 0}))))
+\end{math}
+\end{document}
+%DOCUMENT ends here%
