@@ -76,6 +76,11 @@ let rec gather_exp_ty_substitution gamma exp tau =
 			       (match gather_list nelist ([p]@[p1]) (subst_compose s1 s) with
 				   None -> None
 				 | Some(pn,sn) -> Some(Proof(pn,judgment),sn))))
+      | LetExp(d,e) -> (match gather_dec_ty_substitution gamma d with
+	  None -> None
+	  | Some(pd,delta,sd) -> (match gather_exp_ty_substitution (sum_env delta (env_lift_subst sd gamma)) e (monoTy_lift_subst sd tau) with
+	      None -> None
+	      | Some(pe,se) -> Some(Proof([pd]@[pe],judgment),subst_compose se sd)))
 
 and gather_dec_ty_substitution gamma dec = 
   match dec with
@@ -93,4 +98,17 @@ and gather_dec_ty_substitution gamma dec =
 			None -> None
 		      | Some(p,s) -> let env = make_env f (gen (env_lift_subst s gamma) (monoTy_lift_subst s tau12)) in
 				     Some(Proof([p],DecJudgment(gamma,dec,env)),env,s))
-    | _ -> raise (Failure "Not implemented yet")
+    | Seq(d1,d2) -> (match gather_dec_ty_substitution gamma d1 with
+	None -> None
+	| Some(p1,delta1,s1) -> (match gather_dec_ty_substitution (env_lift_subst s1 (sum_env delta1 gamma)) d2 with
+	    None -> None
+	    | Some(p2,delta2,s2) -> let s21 = subst_compose s2 s1 in
+				    let env = env_lift_subst s21 (sum_env delta2 delta1) in
+				    Some(Proof([p1]@[p2],DecJudgment(gamma,dec,env)),env,s21)))
+    | Local(d1,d2) -> (match gather_dec_ty_substitution gamma d1 with
+	None -> None
+	| Some(p1,delta1,s1) -> (match gather_dec_ty_substitution (env_lift_subst s1 (sum_env delta1 gamma)) d2 with
+	    None -> None
+	    | Some(p2,delta2,s2) -> let s21 = subst_compose s2 s1 in
+				    let env = env_lift_subst s21 delta2 in
+				    Some(Proof([p1]@[p2],DecJudgment(gamma,dec,env)),env,s21)))
