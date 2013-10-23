@@ -24,89 +24,93 @@ let close_comment = "*)"
 let legal_char = [^ '"']
 
 rule token = parse
-  | [' ' '\t' '\n'] { token lexbuf }  (* skip over whitespace *)
+  | [' ' '\t']      { cinc 1; token lexbuf }  (* skip over whitespace *)
+  | ['\n']          { linc 1; token lexbuf }
   | eof             { EOF } 
-  | '~'             { NEG }
-  | '+'             { PLUS }
-  | '-'             { MINUS }
-  | '*'             { TIMES }
-  | '/'             { DIV }
-  | "+."            { DPLUS }
-  | "-."            { DMINUS }
-  | "*."            { DTIMES }
-  | "/."            { DDIV }
-  | '^'             { CARAT }
-  | '<'             { LT }
-  | '>'             { GT }
-  | "<="            { LEQ }
-  | ">="            { GEQ }
-  | '='             { EQUALS }
-  | "<>"            { NEQ }
-  | '|'             { PIPE }
-  | "=>"            { ARROW }
-  | ';'             { SEMI }
-  | "::"            { DCOLON }
-  | '@'             { AT }
-  | "nil"           { NIL }
-  | "let"           { LET }
-  | "local"         { LOCAL }
-  | "val"           { VAL }
-  | "rec"           { REC }
-  | "and"           { AND }
-  | "end"           { END }
-  | "in"            { IN }
-  | "if"            { IF }
-  | "then"          { THEN }
-  | "else"          { ELSE }
-  | "fun"           { FUN }
-  | "fn"            { FN }
-  | "op"            { OP }
-  | "mod"           { MOD }
-  | "raise"         { RAISE }
-  | "handle"        { HANDLE }
-  | "with"          { WITH }
-  | "not"           { NOT }
-  | "andalso"       { ANDALSO }
-  | "orelse"        { ORELSE }
-  | '['             { LBRAC }
-  | ']'             { RBRAC }
-  | '('             { LPAREN }
-  | ')'             { RPAREN }
-  | ','             { COMMA }
-  | '_'             { UNDERSCORE }
-  | numeric+ as num                  { INT(int_of_string num) }
-  | numeric+'.'numeric+ as num       { REAL(float_of_string num) }
-  | "true"          { BOOL(true) }
-  | "false"         { BOOL(false) }
-  | "()"            { UNIT }
-  | (character)(idchar)* as id       { IDENT(id) }
-  | ";;" [^'\n']*   { token lexbuf }
-  | open_comment    { comment 1 lexbuf }
-  | close_comment   { raise (Failure "unmatched comment") }
-  | "\""            { string "" lexbuf }
+  | '~'             { cinc 1; NEG }
+  | '+'             { cinc 1; PLUS }
+  | '-'             { cinc 1; MINUS }
+  | '*'             { cinc 1; TIMES }
+  | '/'             { cinc 1; DIV }
+  | "+."            { cinc 2; DPLUS }
+  | "-."            { cinc 2; DMINUS }
+  | "*."            { cinc 2; DTIMES }
+  | "/."            { cinc 2; DDIV }
+  | '^'             { cinc 1; CARAT }
+  | '<'             { cinc 1; LT }
+  | '>'             { cinc 1; GT }
+  | "<="            { cinc 2; LEQ }
+  | ">="            { cinc 2; GEQ }
+  | '='             { cinc 1; EQUALS }
+  | "<>"            { cinc 2; NEQ }
+  | '|'             { cinc 1; PIPE }
+  | "=>"            { cinc 2; ARROW }
+  | ';'             { cinc 1; SEMI }
+  | "::"            { cinc 2; DCOLON }
+  | '@'             { cinc 1; AT }
+  | "nil"           { cinc 3; NIL }
+  | "let"           { cinc 3; LET }
+  | "local"         { cinc 5; LOCAL }
+  | "val"           { cinc 3; VAL }
+  | "rec"           { cinc 3; REC }
+  | "and"           { cinc 3; AND }
+  | "end"           { cinc 3; END }
+  | "in"            { cinc 2; IN }
+  | "if"            { cinc 2; IF }
+  | "then"          { cinc 4; THEN }
+  | "else"          { cinc 4; ELSE }
+  | "fun"           { cinc 3; FUN }
+  | "fn"            { cinc 2; FN }
+  | "op"            { cinc 2; OP }
+  | "mod"           { cinc 3; MOD }
+  | "raise"         { cinc 5; RAISE }
+  | "handle"        { cinc 6; HANDLE }
+  | "with"          { cinc 4; WITH }
+  | "not"           { cinc 3; NOT }
+  | "andalso"       { cinc 7; ANDALSO }
+  | "orelse"        { cinc 6; ORELSE }
+  | '['             { cinc 1; LBRAC }
+  | ']'             { cinc 1; RBRAC }
+  | '('             { cinc 1; LPAREN }
+  | ')'             { cinc 1; RPAREN }
+  | ','             { cinc 1; COMMA }
+  | '_'             { cinc 1; UNDERSCORE }
+  | numeric+ as num                  { cinc (String.length num); INT(int_of_string num) }
+  | numeric+'.'numeric+ as num       { cinc (String.length num); REAL(float_of_string num) }
+  | "true"          { cinc 4; BOOL(true) }
+  | "false"         { cinc 5; BOOL(false) }
+  | "()"            { cinc 2; UNIT }
+  | (character)(idchar)* as id       { cinc (String.length id); IDENT(id) }
+  | ";;" [^'\n']*   { linc 1; token lexbuf }
+  | open_comment    { cinc 2; comment 1 [(!line_count,!char_count-2)] lexbuf }
+  | close_comment   { raise (CloseComm{line_num = !line_count; char_num = !char_count}) }
+  | "\""            { cinc 1; string "" lexbuf }
 
-and comment depth = parse
-  | open_comment    { comment (depth+1) lexbuf }
-  | close_comment   { if depth = 1 then token lexbuf else comment (depth-1) lexbuf }
-  | eof             { raise (Failure "unmatched comment") }
-  | _               { comment depth lexbuf }
+and comment depth pos = parse
+  | open_comment    { cinc 2; comment (depth+1) ((!line_count,!char_count-2)::pos) lexbuf }
+  | close_comment   { cinc 2; if depth = 1 then token lexbuf 
+    else match pos with
+	(x::xs) -> comment (depth-1) xs lexbuf
+      | _ -> raise (Failure "should not occur") }
+  | eof             { let ((l,c)::xs) = pos in raise (OpenComm{line_num = l; char_num = c}) }
+  | _               { cinc 1; comment depth pos lexbuf }
 
 and string str = parse
-  | "\""            { STRING(str) }
-  | "\\"            { escape str lexbuf }
-  | _ as c          { string (str ^ (String.make 1 c)) lexbuf }
+  | "\""            { cinc 1; STRING(str) }
+  | "\\"            { cinc 1; escape str lexbuf }
+  | _ as c          { cinc 1; string (str ^ (String.make 1 c)) lexbuf }
 
 and escape str = parse
-  | "\\"            { string (str ^ (String.make 1 '\\')) lexbuf }
-  | "\""            { string (str ^ (String.make 1 '\"')) lexbuf }
-  | "\\'"           { print_string "here"; string (str ^ (String.make 1 '\'')) lexbuf }
-  | "t"             { string (str ^ (String.make 1 '\t')) lexbuf }
-  | "n"             { string (str ^ (String.make 1 '\n')) lexbuf }
-  | "r"             { string (str ^ (String.make 1 '\r')) lexbuf }
-  | (numeric)(numeric)(numeric) as num      { let n = int_of_string(num) in if (n > 255)
+  | "\\"            { cinc 1; string (str ^ (String.make 1 '\\')) lexbuf }
+  | "\""            { cinc 1; string (str ^ (String.make 1 '\"')) lexbuf }
+  | "\\'"           { cinc 1; string (str ^ (String.make 1 '\'')) lexbuf }
+  | "t"             { cinc 1; string (str ^ (String.make 1 '\t')) lexbuf }
+  | "n"             { cinc 1; string (str ^ (String.make 1 '\n')) lexbuf }
+  | "r"             { cinc 1; string (str ^ (String.make 1 '\r')) lexbuf }
+  | (numeric)(numeric)(numeric) as num      { cinc 3; let n = int_of_string(num) in if (n > 255)
     then string (str ^ "\\" ^ num) lexbuf
     else string (str ^ (String.make 1 (char_of_int (int_of_string num)))) lexbuf }
-  | _ as c          { string (str ^ (String.make 1 '\\') ^ (String.make 1  c)) lexbuf }
+  | _ as c          { print_int !char_count; cinc 2; string (str ^ (String.make 1 '\\') ^ (String.make 1  c)) lexbuf }
 
 {(* do not modify this function: *)
  let lextest s = token (Lexing.from_string s)
