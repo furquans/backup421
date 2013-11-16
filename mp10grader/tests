@@ -65,6 +65,19 @@ TEST2ARG(1, monOpApply, PrintStringOp, (StringVal "hello"));
 
 (* Problem 7 *)
 TEST3ARG(1, binOpApply, IntPlusOp, (IntVal 2), (IntVal 3));
+TEST3ARG(1, binOpApply, IntMinusOp, (IntVal 2), (IntVal 3));
+TEST3ARG(1, binOpApply, IntTimesOp, (IntVal 2), (IntVal 3));
+TEST3ARG(1, binOpApply, IntDivOp, (IntVal 21), (IntVal 3));
+TEST3ARG(1, binOpApply, RealPlusOp, (RealVal 2.1), (RealVal 3.2));
+TEST3ARG(1, binOpApply, RealMinusOp, (RealVal 2.2), (RealVal 3.2));
+TEST3ARG(1, binOpApply, RealTimesOp, (RealVal 2.3), (RealVal 3.1));
+TEST3ARG(1, binOpApply, RealDivOp, (RealVal 21.4), (RealVal 3.1));
+TEST3ARG(1, binOpApply, ConcatOp, (StringVal "hello"), (StringVal "world"));
+TEST3ARG(1, binOpApply, CommaOp, (StringVal "hello"), (StringVal "world"));
+TEST3ARG(1, binOpApply, ConsOp, (IntVal 5), (ListVal [IntVal 2; IntVal 3; IntVal 4;]));
+TEST3ARG(1, binOpApply, EqOp, (StringVal "hello"), (StringVal "world"));
+TEST3ARG(1, binOpApply, GreaterOp, (StringVal "hello"), (StringVal "world"));
+
 
 (* parse "3 + 4;" *)
 TEST1ARG(1, eval_exp, (BinOpAppExp(IntPlusOp,

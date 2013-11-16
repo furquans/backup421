@@ -26,6 +26,18 @@ let monOpApply unop v =
 let binOpApply binop v1 v2 = 
   match (binop,v1,v2) with
       (IntPlusOp, IntVal i1, IntVal i2) -> IntVal (i1+i2)
+    | (IntMinusOp, IntVal i1, IntVal i2) -> IntVal (i1-i2)
+    | (IntTimesOp, IntVal i1, IntVal i2) -> IntVal (i1*i2)
+    | (IntDivOp, IntVal i1, IntVal i2) -> IntVal (i1/i2)
+    | (RealPlusOp, RealVal r1, RealVal r2) -> RealVal (r1+.r2)
+    | (RealMinusOp, RealVal r1, RealVal r2) -> RealVal (r1-.r2)
+    | (RealTimesOp, RealVal r1, RealVal r2) -> RealVal (r1*.r2)
+    | (RealDivOp, RealVal r1, RealVal r2) -> RealVal (r1/.r2)
+    | (ConcatOp, StringVal s1, StringVal s2) -> StringVal (s1^s2)
+    | (ConsOp, h, ListVal t) -> ListVal (h::t)
+    | (CommaOp, v1, v2) -> PairVal(v1,v2)
+    | (EqOp, v1, v2) -> BoolVal(v1 = v2)
+    | (GreaterOp, v1, v2) -> BoolVal(v1>v2)
     | (_,_,_) -> failwith "invalid operation"
 
 let rec eval_exp (exp, m) = 
@@ -38,15 +50,24 @@ let rec eval_exp (exp, m) =
       (match eval_exp (e1,m) with
 	  ClosureVal(x,e',m') -> 
 	    (match eval_exp (e2,m) with
-		v' -> eval_exp (e',(ins_env m' x v'))))
+		v' -> eval_exp (e',(ins_env m' x v')))
+	| _ -> failwith "invalid return of closure")
     | MonOpAppExp(mon,e) -> let v = eval_exp (e,m) in monOpApply mon v
     | BinOpAppExp(b,e1,e2) -> 
       let v1 = eval_exp (e1,m) in
       let v2 = eval_exp (e2,m) in
       binOpApply b v1 v2
+    | IfExp(e1,e2,e3) ->
+      (match eval_exp (e1,m) with
+	  BoolVal(true) -> eval_exp (e2,m)
+	| BoolVal(false) -> eval_exp (e3,m)
+	| _ -> failwith "invalid return value for if")
+    | LetExp(d,e) ->
+      let (b,m') = eval_dec (d,m) in
+      eval_exp (e,(sum_env m' m))
     | _ -> failwith "eval_exp is not implemented yet."
 
-let eval_dec (dec, m) = 
+and eval_dec (dec, m) = 
   match dec with
       Val(x,e) -> let v = eval_exp (e,m) in 
 		  if x = "" then ([(None,v)],empty_env) else ([(Some x,v)],(make_env x v))
