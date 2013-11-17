@@ -40,6 +40,12 @@ let binOpApply binop v1 v2 =
     | (GreaterOp, v1, v2) -> BoolVal(v1>v2)
     | (_,_,_) -> failwith "invalid operation"
 
+let rec get_value_list j lst =
+  match lst with
+      [] -> None
+    | ((Some v,e)::xs) -> if v = j then Some e else get_value_list j xs
+    | ((None,e)::xs) -> Some e;;
+
 let rec eval_exp (exp, m) = 
   match exp with
       ConstExp c -> const_to_val c
@@ -84,7 +90,11 @@ let rec eval_exp (exp, m) =
 	| _ -> failwith "Invalid argument to raise")
     | HandleExp(e,int_opt,e0,lst) ->
       (match eval_exp (e,m) with
-	  v -> v
+	  Exn(j) -> 
+	  (match get_value_list j ((int_opt,e0)::lst) with
+	      None -> Exn(j)
+	    | Some ei -> eval_exp (ei,m))
+	| v -> v)
 
 and eval_dec (dec, m) = 
   match dec with
