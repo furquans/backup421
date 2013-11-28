@@ -69,3 +69,16 @@ let rec one_step_exp_cps_eval env exp_cps =
 	| Some(BoolVal(false)) -> Intermediate(env,ec2)
 	| Some(_) -> Failed
       )
+    | FnCPS(k,s,i1,i2,ecp) -> app_cont_to_value env k (CPSClosureVal(s,i1,i2,ecp,env))
+    | FixCPS(k,s1,s2,i1,i2,ecp) -> app_cont_to_value env k (CPSRecClosureVal(s1,s2,i1,i2,ecp,env))
+    | AppCPS(k,f,x,ec) ->
+      (match lookup_value env x with
+	  None -> Failed
+	| Some v ->
+	  (match lookup_value env f with
+	      None -> Failed
+	    | Some(CPSClosureVal(y,k',ek,e,env')) -> Intermediate([ValueBinding(y,v);ContBinding(k',(k,env));ExnContBinding(ek,(ec,env))]@env',e)
+	    | Some(CPSRecClosureVal(g,y,k',ek,e,env')) -> Intermediate([ValueBinding(y,v);ValueBinding(g,CPSRecClosureVal(g,y,k',ek,e,env'));ContBinding(k',(k,env));ExnContBinding(ek,(ec,env))]@env',e)
+	    | _ -> Failed
+	  )
+      )
